@@ -1,5 +1,7 @@
 package mad9132.rgba;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -46,18 +48,17 @@ public class MainActivity extends AppCompatActivity implements Observer
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        SharedPreferences settings = getSharedPreferences(getResources().getString(R.string.app_name), Context.MODE_PRIVATE);
         // Instantiate a new AboutDialogFragment()
         // but do not show it (yet)
         mAboutDialog = new AboutDialogFragment();
 
         // Instantiate a new RGBA model
         // Initialize the model red (max), green (min), blue (min), and alpha (max)
-        mModel = new RGBAModel();
-        mModel.setRed(RGBAModel.MAX_RGB);
-        mModel.setGreen(RGBAModel.MIN_RGB);
-        mModel.setBlue(RGBAModel.MIN_RGB);
-        mModel.setAlpha(RGBAModel.MAX_ALPHA);
+        mModel = new RGBAModel(settings.getInt("red", 0),
+                settings.getInt("green", 0),
+                settings.getInt("blue", 0),
+                settings.getInt("alpha", 0));
         // The Model is observing this Controller (class MainActivity implements Observer)
         mModel.addObserver(this);
 
@@ -204,5 +205,23 @@ public class MainActivity extends AppCompatActivity implements Observer
         this.updateRedSB();
         this.updateGreenSB();
         this.updateBlueSB();
+    }
+
+    // Remember the user's settings for RGBA
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // We need an Editor object to make preference changes.
+        SharedPreferences settings = getSharedPreferences(getResources().getString(R.string.app_name), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+
+        editor.putInt("red", mModel.getRed());
+        editor.putInt("blue", mModel.getBlue());
+        editor.putInt("green", mModel.getGreen());
+        editor.putInt("alpha", mModel.getAlpha());
+
+        // Commit the edits!
+        editor.commit();
     }
 }
